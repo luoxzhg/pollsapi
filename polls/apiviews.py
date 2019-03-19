@@ -1,9 +1,18 @@
+from django.contrib.auth import authenticate
+
+from rest_framework import status
 from rest_framework import generics
 from rest_framework import permissions
 from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.authtoken.models import Token
 
 from .models import Poll, Choice
-from .serializers import PollSerializer, ChoiceSerializer, VoteSerializer
+from .serializers import (UserSerializer,
+                          PollSerializer,
+                          ChoiceSerializer,
+                          VoteSerializer)
 
 
 # Create your views here.
@@ -33,3 +42,25 @@ class CreateVote(generics.CreateAPIView):
             kwargs['data'] = data
         return super(CreateVote, self).get_serializer(*args, **kwargs)
 
+
+class CreateUser(generics.CreateAPIView):
+    serializer_class = UserSerializer
+    authentication_classes = ()
+    permission_classes = ()
+
+
+class LoginView(APIView):
+    permission_classes = ()
+
+    def post(self, request):
+        username = request.data['username']
+        password = request.data['password']
+
+        user = authenticate(username=username, password=password)
+
+        if user:
+            token = Token.objects.get_or_create(user=user)
+            return Response({'token': token.key})
+        else:
+            return Response({'error': 'wrong credentials'},
+                            status=status.HTTP_401_UNAUTHORIZED)

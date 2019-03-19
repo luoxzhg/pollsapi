@@ -16,6 +16,11 @@ urlpatterns = [
     url(r'^polls/(?P<poll_pk>\d+)/choices/(?P<choice_pk>\d+)/vote/$',
         apiviews.CreateVote.as_view(), name='create_vote'),
 
+    url(r'^users/$',
+        apiviews.CreateUser.as_view(), name='create_user'),
+
+    url(r'^login/$',
+        apiviews.LoginView.as_view(), name='login'),
 ]
 
 urlpatterns += router.urls
