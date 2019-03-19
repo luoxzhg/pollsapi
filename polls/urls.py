@@ -1,7 +1,6 @@
 from django.conf.urls import url
 
 from rest_framework.routers import DefaultRouter
-
 from . import apiviews
 
 
@@ -16,11 +15,9 @@ urlpatterns = [
     url(r'^polls/(?P<poll_pk>\d+)/choices/(?P<choice_pk>\d+)/vote/$',
         apiviews.CreateVote.as_view(), name='create_vote'),
 
-    url(r'^users/$',
-        apiviews.CreateUser.as_view(), name='create_user'),
+    url(r'^users/$', apiviews.CreateUser.as_view(), name='create_user'),
 
-    url(r'^login/$',
-        apiviews.LoginView.as_view(), name='login'),
+    url(r'^login/$', apiviews.LoginView.as_view(), name='login'),
 ]
 
 urlpatterns += router.urls
