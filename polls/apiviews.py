@@ -1,17 +1,13 @@
 from rest_framework import generics
 from rest_framework import permissions
+from rest_framework import viewsets
 
 from .models import Poll, Choice
 from .serializers import PollSerializer, ChoiceSerializer, VoteSerializer
 
 
 # Create your views here.
-class PollList(generics.ListCreateAPIView):
-    queryset = Poll.objects.all()
-    serializer_class = PollSerializer
-
-
-class PollDetail(generics.RetrieveDestroyAPIView):
+class PollViewSet(viewsets.ModelViewSet):
     queryset = Poll.objects.all()
     serializer_class = PollSerializer
 
