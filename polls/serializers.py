@@ -14,7 +14,7 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        user = User(username=validated_data['username'], email=validated_data['email'])
+        user = self.Meta.model(username=validated_data['username'], email=validated_data['email'])
         user.set_password(validated_data['password'])
         user.save()
         Token.objects.create(user=user)
@@ -31,6 +31,11 @@ class VoteSerializer(serializers.ModelSerializer):
             'choice': {'required': False}
         }
 
+    def validate(self, data):
+        if data['choice'].poll != data['poll']:
+            raise serializers.ValidationError("Choice can only be voted to its owner poll.")
+        return data
+
 
 class ChoiceSerializer(serializers.ModelSerializer):
     votes = VoteSerializer(many=True, required=False, read_only=True)
@@ -45,9 +50,9 @@ class ChoiceSerializer(serializers.ModelSerializer):
 
 class PollSerializer(serializers.ModelSerializer):
     choices = ChoiceSerializer(many=True, required=False, read_only=True)
+    created_by = serializers.CharField(source='created_by.username', required=False, read_only=True)
 
     class Meta:
         model = Poll
         fields = "__all__"
-        extra_kwargs = {'created_by': {'read_only': True}}
         depth = 1

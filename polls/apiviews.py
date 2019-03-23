@@ -9,9 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 
 from .models import Poll, Choice
-from .permissions import (IsOwnerOrReadOnly,
-                          IsOwnerOfPoll,
-                          IsPollOwnChoice)
+from .permissions import IsOwnerOrReadOnly
 from .serializers import (UserSerializer,
                           PollSerializer,
                           ChoiceSerializer,
@@ -30,27 +28,43 @@ class PollViewSet(viewsets.ModelViewSet):
 
 class ChoiceList(generics.ListCreateAPIView):
     serializer_class = ChoiceSerializer
-    permission_classes = (permissions.IsAuthenticated, IsOwnerOfPoll)
+    permission_classes = (permissions.IsAuthenticated,)
 
     def get_queryset(self):
         return Choice.objects.filter(poll=self.kwargs['poll_pk'])
 
     def create(self, request, *args, **kwargs):
-        request.data['poll'] = kwargs['poll_pk']
-        return super(ChoiceList, self).create(request, *args, **kwargs)
+        data = request.data.copy()
+        data['poll'] = kwargs['poll_pk']
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+
+        if request.user != serializer.validated_data['poll'].created_by:
+            raise permissions.PermissionDenied(
+                "Only the owner of the poll can create choice."
+            )
+
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class CreateVote(generics.CreateAPIView):
     serializer_class = VoteSerializer
-    permission_classes = (permissions.IsAuthenticated, IsPollOwnChoice)
+    permission_classes = (permissions.IsAuthenticated, )
 
     def create(self, request, poll_pk, choice_pk):
-        request.data.update({
+        data = request.data.copy()
+        data.update({
             'poll': int(poll_pk),
             'choice': int(choice_pk),
             'voted_by': request.user.pk
         })
-        return super().create(request)
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
 class CreateUser(generics.CreateAPIView):

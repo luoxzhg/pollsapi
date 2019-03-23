@@ -14,16 +14,19 @@ class IsOwnerOrReadOnly(BasePermission):
             return request.user == obj.created_by
 
 
-class IsOwnerOfPoll(BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return request.user == obj.poll.created_by
+# class IsOwnerOfPoll(BasePermission):
+#     def has_permission(self, request, view):
+#         # has_object_permission() method can't check POST
+#
+#     def has_object_permission(self, request, view, obj):
+#         return request.user == obj.poll.created_by
 
 
-class IsPollOwnChoice(BasePermission):
-    message = 'Choice can only be voted to its owner poll'
-
-    def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            return True
-        choice = Choice.objects.get(pk=int(request.resolver_match.kwargs['choice_pk']))
-        return choice.poll.pk == int(request.resolver_match.kwargs['poll_pk'])
+# class IsPollOwnChoice(BasePermission):
+#     message = 'Choice can only be voted to its owner poll'
+#
+#     def has_permission(self, request, view):
+#         if request.method in SAFE_METHODS:
+#             return True
+#         choice = Choice.objects.get(pk=int(request.resolver_match.kwargs['choice_pk']))
+#         return choice.poll.pk == int(request.resolver_match.kwargs['poll_pk'])
